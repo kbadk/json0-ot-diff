@@ -1,0 +1,32 @@
+{
+  "name": "json0-ot-diff",
+  "version": "1.0.0",
+  "description": "Finds differences between two JSON object and generates operational transformation (OT) operations for transforming the first object into the second.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kbadk/json0-ot-diff.git"
+  },
+  "keywords": [
+    "json",
+    "json0",
+    "ot",
+    "operational",
+    "transformation",
+    "diff"
+  ],
+  "author": "Kristian Antonsen",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/kbadk/json0-ot-diff/issues"
+  },
+  "homepage": "https://github.com/kbadk/json0-ot-diff#readme",
+  "dependencies": {
+    "clone": "^1.0.2",
+    "deep-equal": "^1.0.1",
+    "ot-json0": "^1.0.1"
+  }
+}
