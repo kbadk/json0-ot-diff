@@ -91,15 +91,16 @@ var diff = function(input, output, path=[]) {
 				ops.push(op);
 			});
 		}
-		return optimize(ops);
+		return ops;
 	}
 
 	var ops = [];
-	for (var key in output) {
+	var keys = new Set([...Object.keys(input), ...Object.keys(output)]);
+	keys.forEach(function(key) {
 		var newOps = diff(input[key], output[key], [...path, key]);
 		ops = ops.concat(newOps);
-	}
-	return optimize(ops);
+	});
+	return ops;
 }
 
 var optimizedDiff = function(input, output) {

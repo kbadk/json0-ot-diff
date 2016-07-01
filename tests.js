@@ -48,6 +48,10 @@ var tests = [
 		{"foo":"bar"},
 		{"foo":"quux"}
 	],
+	[
+		[	{ foo: 'bar' } ],
+		[	{} ]
+	],
 	// big tests
 	[
 		[],
