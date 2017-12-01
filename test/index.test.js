@@ -78,12 +78,21 @@ describe("Jsondiff", function() {
               li: true
             }
           ]
-        },
+        }
+      ];
+      tests.forEach(test => {
+        it(test.name, function() {
+          let output = jsondiff(test.start, test.end);
+          expect(output).to.deep.have.same.members(test.expectedCommand);
+        });
+      });
+    });
+    describe("List Replace (oi + od)", function() {
+      let tests = [
         {
           name: "Add one string to middle of array",
           start: ["one", "two"],
           end: ["one", "three", "two"],
-          // This should need to be like this, but it works so leave it for now
           expectedCommand: [
             {
               p: [1],
@@ -102,6 +111,11 @@ describe("Jsondiff", function() {
           end: [1, 3, 2],
           expectedCommand: [
             {
+              p: [1],
+              ld: 2,
+              li: 3
+            },
+            {
               p: [2],
               li: 2
             }
@@ -112,6 +126,11 @@ describe("Jsondiff", function() {
           start: [false, false],
           end: [false, true, false],
           expectedCommand: [
+            {
+              p: [1],
+              ld: false,
+              li: true
+            },
             {
               p: [2],
               li: false
@@ -202,8 +221,8 @@ describe("Jsondiff", function() {
           expectedCommand: [
             {
               p: ["one"],
-              oi: true,
-              od: false
+              oi: false,
+              od: true
             }
           ]
         }
@@ -211,7 +230,6 @@ describe("Jsondiff", function() {
       tests.forEach(test => {
         it(test.name, function() {
           let output = jsondiff(test.start, test.end);
-          console.log()
           expect(output).to.deep.equal(test.expectedCommand);
         });
       });
