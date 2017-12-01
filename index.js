@@ -7,7 +7,7 @@ var optimize = function(ops) {
 	/*
 	Optimization loop where we attempt to find operations that needlessly inserts and deletes identical objects right
 	after each other, and then consolidate them.
-	 */ 
+	 */
 	for (var i=0, l=ops.length-1; i < l; ++i) {
 		var a = ops[i], b = ops[i+1];
 
