@@ -27,10 +27,12 @@
   },
   "homepage": "https://github.com/kbadk/json0-ot-diff#readme",
   "dependencies": {
-    "chai": "^4.1.2",
     "clone": "^1.0.2",
     "deep-equal": "^1.0.1",
-    "mocha": "^4.0.1",
     "ot-json0": "^1.0.1"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^4.0.1"
   }
 }
