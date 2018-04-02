@@ -8,6 +8,8 @@ let jsondiff = require("../index.js");
 let json0 = require("ot-json0/lib/json0");
 // Assertion expectations
 let expect = require("chai").expect;
+// Library for computing differences between strings
+let diffMatchPatch = require("diff-match-patch");
 
 describe("Jsondiff", function() {
   describe("Operations", function() {
@@ -230,6 +232,69 @@ describe("Jsondiff", function() {
       tests.forEach(test => {
         it(test.name, function() {
           let output = jsondiff(test.start, test.end);
+          expect(output).to.deep.equal(test.expectedCommand);
+        });
+      });
+    });
+    describe("String Mutation (si + sd)", function() {
+      // These test cases come from diff-match-patch tests.
+      let tests = [
+        {
+          name: "Strings with a common prefix, null case",
+          start: { one: "one" },
+          end: { one: "two" },
+          expectedCommand: [
+            { sd: "one", p: [ "one", 0 ] },
+            { si: "two", p: [ "one", 0 ] }
+          ]
+        },
+        {
+          name: "Strings with a common prefix, non-null case",
+          start: { one: "1234abcdef" },
+          end: { one: "1234xyz" },
+          expectedCommand: [
+            { sd: 'abcdef', p: [ 'one', 4 ] },
+            { si: 'xyz', p: [ 'one', 4 ] }
+          ]
+        },
+        {
+          name: "Strings with a common prefix, whole case",
+          start: { one: "1234" },
+          end: { one: "1234xyz" },
+          expectedCommand: [
+            { si: 'xyz', p: [ 'one', 4 ] }
+          ]
+        },
+        {
+          name: "Strings with a common suffix, non-null case",
+          start: { one: "abcdef1234" },
+          end: { one: "xyz1234" },
+          expectedCommand: [
+            { sd: 'abcdef', p: [ 'one', 0 ] },
+            { si: 'xyz', p: [ 'one', 0 ] }
+          ]
+        },
+        {
+          name: "Strings with a common suffix, whole case",
+          start: { one: "1234" },
+          end: { one: "xyz1234" },
+          expectedCommand: [
+            { si: 'xyz', p: [ 'one', 0 ] }
+          ]
+        },
+        {
+          name: "Example from README",
+          start: ["foo", "The only change here is at the end.", 1, 2, 3],
+          end: ["foo", "The only change here is at the very end.", 1, 2],
+          expectedCommand: [
+            { p: [ 1, 31 ], si: "very " },
+            { p: [ 4 ], ld: 3 }
+          ]
+        }
+      ];
+      tests.forEach(test => {
+        it(test.name, function() {
+          let output = jsondiff(test.start, test.end, diffMatchPatch);
           expect(output).to.deep.equal(test.expectedCommand);
         });
       });

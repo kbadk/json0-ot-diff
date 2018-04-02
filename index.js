@@ -3,6 +3,41 @@
 var equal = require("deep-equal");
 var json0 = require("ot-json0/lib/json0");
 
+/**
+ * Convert a number of string patches to OT operations.
+ * @param  {JsonMLPath} path Base path for patches to apply to.
+ * @param  {string} oldValue Old value.
+ * @param  {string} newValue New value.
+ * @return {Ops}             List of resulting operations.
+ */
+function patchesToOps(path, oldValue, newValue, diffMatchPatch, diffMatchPatchInstance) {
+	const ops = [];
+
+	var patches = diffMatchPatchInstance.patch_make(oldValue, newValue);
+
+	Object.keys(patches).forEach(function(i) {
+		var patch = patches[i], offset = patch.start1;
+		patch.diffs.forEach(function([type, value]) {
+			switch (type) {
+				case diffMatchPatch.DIFF_DELETE:
+					ops.push({ sd: value, p: [...path, offset] });
+					break;
+				case diffMatchPatch.DIFF_INSERT:
+					ops.push({ si: value, p: [...path, offset] });
+					// falls through intentionally
+				case diffMatchPatch.DIFF_EQUAL:
+					offset += value.length;
+					break;
+				default: throw Error(`Unsupported operation type: ${type}`);
+			}
+		});
+	});
+
+	return ops;
+}
+
+var diffMatchPatchInstance;
+
 var optimize = function(ops) {
 	/*
 	Optimization loop where we attempt to find operations that needlessly inserts and deletes identical objects right
@@ -42,7 +77,7 @@ var optimize = function(ops) {
 	return ops;
 }
 
-var diff = function(input, output, path=[]) {
+var diff = function(input, output, path=[], diffMatchPatch) {
 	// If the last element of the path is a string, that means we're looking at a key, rather than
 	// a number index. Objects use keys, so the target for our insertion/deletion is an object.
 	var isObject = typeof path[path.length-1] === "string";
@@ -66,6 +101,17 @@ var diff = function(input, output, path=[]) {
 		return [op];
 	}
 
+	// If diffMatchPatch was provided, handle string mutation.
+	if (diffMatchPatch && (typeof input === "string") && (typeof output === "string")) {
+
+		// Instantiate the instance of diffMatchPatch only once.
+		if (!diffMatchPatchInstance) {
+			diffMatchPatchInstance = new diffMatchPatch();
+		}
+
+		return patchesToOps(path, input, output, diffMatchPatch, diffMatchPatchInstance);
+	}
+
 	var primitiveTypes = ["string", "number", "boolean"];
 	// If either of input/output is a primitive type, there is no need to perform deep recursive calls to
 	// figure out what to do. We can just replace the objects.
@@ -82,7 +128,7 @@ var diff = function(input, output, path=[]) {
 		var ops = [];
 		var offset = 0;
 		for (var i=0; i < l; ++i) {
-			var newOps = diff(input[i], output[i], [...path, i + offset]);
+			var newOps = diff(input[i], output[i], [...path, i + offset], diffMatchPatch);
 			newOps.forEach(function(op) {
 				var opParentPath = op.p.slice(0, -1);
 				if (equal(path, opParentPath)) {
@@ -98,14 +144,14 @@ var diff = function(input, output, path=[]) {
 	var ops = [];
 	var keys = new Set([...Object.keys(input), ...Object.keys(output)]);
 	keys.forEach(function(key) {
-		var newOps = diff(input[key], output[key], [...path, key]);
+		var newOps = diff(input[key], output[key], [...path, key], diffMatchPatch);
 		ops = ops.concat(newOps);
 	});
 	return ops;
 }
 
-var optimizedDiff = function(input, output) {
-	return optimize(diff(input, output));
+var optimizedDiff = function(input, output, diffMatchPatch) {
+	return optimize(diff(input, output, [], diffMatchPatch));
 }
 
 module.exports = optimizedDiff;
