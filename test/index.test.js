@@ -240,6 +240,15 @@ describe("Jsondiff", function() {
       // These test cases come from diff-match-patch tests.
       let tests = [
         {
+          name: "Top level string",
+          start: "one",
+          end: "two",
+          expectedCommand: [
+            { sd: "one", p: [] },
+            { si: "two", p: [] }
+          ]
+        },
+        {
           name: "Strings with a common prefix, null case",
           start: { one: "one" },
           end: { one: "two" },
