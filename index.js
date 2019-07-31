@@ -1,7 +1,6 @@
 "use strict";
 
 var equal = require("deep-equal");
-var json0 = require("ot-json0/lib/json0");
 
 /**
  * Convert a number of string patches to OT operations.
