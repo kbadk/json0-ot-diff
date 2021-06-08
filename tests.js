@@ -39,6 +39,11 @@ var tests = [
 		["foo", "bar", "quux"],
 		["bar", "quux"]
 	],
+	// tests for object/array
+	[
+		{},
+		[]
+	],
 	// tests for oi/od
 	[
 		{},

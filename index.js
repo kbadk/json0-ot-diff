@@ -79,7 +79,7 @@ var optimize = function(ops) {
 var diff = function(input, output, path=[], diffMatchPatch) {
 	// If the last element of the path is a string, that means we're looking at a key, rather than
 	// a number index. Objects use keys, so the target for our insertion/deletion is an object.
-	var isObject = typeof path[path.length-1] === "string";
+	var isObject = typeof path[path.length-1] === "string" || path.length === 0;
 
 	// If input and output are equal, no operations are needed.
 	if (equal(input, output)) {
@@ -121,23 +121,41 @@ var diff = function(input, output, path=[], diffMatchPatch) {
 		return [op];
 	}
 
-	if (Array.isArray(output)) {
+	if (Array.isArray(output) && Array.isArray(input)) {
 		var ops = [];
-		var l = Math.max(input.length, output.length);
+		var inputLen = input.length, outputLen = output.length;
+		var minLen = Math.min(inputLen, outputLen);
 		var ops = [];
-		var offset = 0;
-		for (var i=0; i < l; ++i) {
-			var newOps = diff(input[i], output[i], [...path, i + offset], diffMatchPatch);
+		for (var i=0; i < minLen; ++i) {
+			var newOps = diff(input[i], output[i], [...path, i], diffMatchPatch);
 			newOps.forEach(function(op) {
-				var opParentPath = op.p.slice(0, -1);
-				if (equal(path, opParentPath)) {
-					if ("li" in op) offset++;
-					if ("ld" in op) offset--;
-				}
 				ops.push(op);
 			});
 		}
+		if (outputLen > inputLen) {
+			// deal with array insert
+			for (var i=minLen; i < outputLen; i++) {
+				var newOps = diff(undefined, output[i], [...path, i], diffMatchPatch);
+				newOps.forEach(function(op) {
+					ops.push(op);
+				});
+			}
+		} else if (outputLen < inputLen) {
+			// deal with array delete
+			for (var i=minLen; i < inputLen; i++) {
+				var newOps = diff(input[i], undefined, [...path, minLen], diffMatchPatch);
+				newOps.forEach(function(op) {
+					ops.push(op);
+				});
+			}
+		}
 		return ops;
+	} else if (Array.isArray(output) || Array.isArray(input)) {
+		// deal with array/object
+		var op = { p: path };
+		op[isObject ? "od" : "ld"] = input;
+		op[isObject ? "oi" : "li"] = output;
+		return [op];
 	}
 
 	var ops = [];
