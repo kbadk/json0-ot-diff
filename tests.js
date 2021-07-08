@@ -1,6 +1,7 @@
 "use strict";
 
 var assert = require("assert");
+var equal = require("deep-equal");
 var clone = require("clone");
 var json0 = require("ot-json0/lib/json0");
 var jsondiff = require("./index.js");
@@ -125,8 +126,8 @@ var tests = [
 tests.forEach(function([input, output]) {
 	var cinput = clone(input), coutput = clone(output);
 	jsondiff(input, output);
-	assert.deepEqual(cinput, input);
-	assert.deepEqual(coutput, output);
+	assert(equal(cinput, input));
+	assert(equal(coutput, output));
 });
 
 // Actual tests
@@ -137,7 +138,7 @@ tests.forEach(function([input, output]) {
 			input = json0.apply(input, [op]);
 		}, null, "json0 could not apply transformation");
 	});
-	assert.deepEqual(input, output);
+	assert(equal(input, output));
 });
 
 console.log("No errors!");
