@@ -5,7 +5,7 @@ let assert = require("assert");
 // Library we're testing
 let jsondiff = require("../index.js");
 // json0 transform to work out if the right transform is being created
-let json0 = require("ot-json0/lib/json0");
+let json0 = require("ot-json0");
 // Assertion expectations
 let expect = require("chai").expect;
 // Library for computing differences between strings
@@ -244,8 +244,8 @@ describe("Jsondiff", function() {
           start: "one",
           end: "two",
           expectedCommand: [
-            { sd: "one", p: [] },
-            { si: "two", p: [] }
+            { sd: "one", p: [0] },
+            { si: "two", p: [0] }
           ]
         },
         {
@@ -305,6 +305,10 @@ describe("Jsondiff", function() {
         it(test.name, function() {
           let output = jsondiff(test.start, test.end, diffMatchPatch);
           expect(output).to.deep.equal(test.expectedCommand);
+
+          // Test actual application of the expected command.
+          let appliedEnd = json0.type.apply(test.start, test.expectedCommand);
+          expect(appliedEnd).to.deep.equal(test.end);
         });
       });
     });
