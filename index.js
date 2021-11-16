@@ -126,9 +126,10 @@ var diff = function(input, output, path=[]) {
 	// If either of input/output is a primitive type, there is no need to perform deep recursive calls to
 	// figure out what to do. We can just replace the objects.
 	if (primitiveTypes.includes(typeof output) || primitiveTypes.includes(typeof input)) {
-		var op = { p: path };
-		op[isObject ? "od" : "ld"] = input;
-		op[isObject ? "oi" : "li"] = output;
+		//var op = { p: path };
+		//op[isObject ? "od" : "ld"] = input;
+		//op[isObject ? "oi" : "li"] = output;
+		var op = json1.replaceOp(path, input, output);
 		return [op];
 	}
 
