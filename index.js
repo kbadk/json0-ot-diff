@@ -99,8 +99,9 @@ var diff = function(input, output, path=[]) {
 
 	// If there is no output, we need to delete the current data (input).
 	if (typeof output === "undefined") {
-		var op = { p: path };
-		op[isObject ? "od" : "ld"] = input;
+		//var op = { p: path };
+		//op[isObject ? "od" : "ld"] = input;
+		var op = json1.removeOp(path, output);
 		return [op];
 	}
 
@@ -137,7 +138,7 @@ var diff = function(input, output, path=[]) {
 		var minLen = Math.min(inputLen, outputLen);
 		var ops = [];
 		for (var i=0; i < minLen; ++i) {
-			var newOps = diff(input[i], output[i], [...path, i], diffMatchPatch);
+			var newOps = diff(input[i], output[i], [...path, i]);
 			newOps.forEach(function(op) {
 				ops.push(op);
 			});
@@ -145,7 +146,7 @@ var diff = function(input, output, path=[]) {
 		if (outputLen > inputLen) {
 			// deal with array insert
 			for (var i=minLen; i < outputLen; i++) {
-				var newOps = diff(undefined, output[i], [...path, i], diffMatchPatch);
+				var newOps = diff(undefined, output[i], [...path, i]);
 				newOps.forEach(function(op) {
 					ops.push(op);
 				});
@@ -153,7 +154,7 @@ var diff = function(input, output, path=[]) {
 		} else if (outputLen < inputLen) {
 			// deal with array delete
 			for (var i=minLen; i < inputLen; i++) {
-				var newOps = diff(input[i], undefined, [...path, minLen], diffMatchPatch);
+				var newOps = diff(input[i], undefined, [...path, minLen]);
 				newOps.forEach(function(op) {
 					ops.push(op);
 				});
