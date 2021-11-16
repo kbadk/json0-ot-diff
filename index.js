@@ -1,7 +1,11 @@
 "use strict";
 
 var json1 = require("ot-json1");
+var textUnicode = require("ot-text-unicode");
 var equal = require("deep-equal");
+var diffMatchPatch = require("diff-match-patch");
+
+var diffMatchPatchInstance;
 
 /**
  * Convert a number of string patches to OT operations.
@@ -10,7 +14,7 @@ var equal = require("deep-equal");
  * @param  {string} newValue New value.
  * @return {Ops}             List of resulting operations.
  */
-function patchesToOps(path, oldValue, newValue, diffMatchPatch, diffMatchPatchInstance) {
+function patchesToOps(path, oldValue, newValue) {
 	const ops = [];
 
 	var patches = diffMatchPatchInstance.patch_make(oldValue, newValue);
@@ -20,10 +24,18 @@ function patchesToOps(path, oldValue, newValue, diffMatchPatch, diffMatchPatchIn
 		patch.diffs.forEach(function([type, value]) {
 			switch (type) {
 				case diffMatchPatch.DIFF_DELETE:
-					ops.push({ sd: value, p: [...path, offset] });
+
+          var unicodeOp = textUnicode.remove(offset, value)
+          var op = json1.editOp(path, textUnicode.type, unicodeOp)
+					ops.push(op);
+
+					//ops.push({ sd: value, p: [...path, offset] });
 					break;
 				case diffMatchPatch.DIFF_INSERT:
-					ops.push({ si: value, p: [...path, offset] });
+          var unicodeOp = textUnicode.insert(offset, value)
+          var op = json1.editOp(path, textUnicode.type, unicodeOp)
+					ops.push(op);
+
 					// falls through intentionally
 				case diffMatchPatch.DIFF_EQUAL:
 					offset += value.length;
@@ -35,8 +47,6 @@ function patchesToOps(path, oldValue, newValue, diffMatchPatch, diffMatchPatchIn
 
 	return ops;
 }
-
-var diffMatchPatchInstance;
 
 //var optimize = function(ops) {
 //	/*
@@ -77,7 +87,7 @@ var diffMatchPatchInstance;
 //	return ops;
 //}
 
-var diff = function(input, output, path=[], diffMatchPatch) {
+var diff = function(input, output, path=[]) {
 	// If the last element of the path is a string, that means we're looking at a key, rather than
 	// a number index. Objects use keys, so the target for our insertion/deletion is an object.
 	var isObject = typeof path[path.length-1] === "string" || path.length === 0;
@@ -101,14 +111,14 @@ var diff = function(input, output, path=[], diffMatchPatch) {
 	}
 
 	// If diffMatchPatch was provided, handle string mutation.
-	if (diffMatchPatch && (typeof input === "string") && (typeof output === "string")) {
+	if ((typeof input === "string") && (typeof output === "string")) {
 
 		// Instantiate the instance of diffMatchPatch only once.
 		if (!diffMatchPatchInstance) {
 			diffMatchPatchInstance = new diffMatchPatch();
 		}
 
-		return patchesToOps(path, input, output, diffMatchPatch, diffMatchPatchInstance);
+		return patchesToOps(path, input, output);
 	}
 
 	var primitiveTypes = ["string", "number", "boolean"];
@@ -167,9 +177,9 @@ var diff = function(input, output, path=[], diffMatchPatch) {
 	return ops;
 }
 
-var optimizedDiff = function(input, output, diffMatchPatch) {
-	return diff(input, output, [], diffMatchPatch)
-    .reduce(json1.type.compose, null)
+var optimizedDiff = function(input, output) {
+  var ops = diff(input, output, []);
+	return ops.reduce(json1.type.compose, null)
 }
 
 module.exports = optimizedDiff;
