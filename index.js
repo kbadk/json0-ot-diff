@@ -1,5 +1,6 @@
 "use strict";
 
+var json1 = require("ot-json1");
 var equal = require("deep-equal");
 
 /**
@@ -37,44 +38,44 @@ function patchesToOps(path, oldValue, newValue, diffMatchPatch, diffMatchPatchIn
 
 var diffMatchPatchInstance;
 
-var optimize = function(ops) {
-	/*
-	Optimization loop where we attempt to find operations that needlessly inserts and deletes identical objects right
-	after each other, and then consolidate them.
-	 */
-	for (var i=0, l=ops.length-1; i < l; ++i) {
-		var a = ops[i], b = ops[i+1];
-
-		// The ops must have same path.
-		if (!equal(a.p.slice(0, -1), b.p.slice(0, -1))) {
-			continue;
-		}
-
-		// The indices must be successive.
-		if (a.p[a.p.length-1] + 1 !== b.p[b.p.length-1]) {
-			continue;
-		}
-
-		// The first operatin must be an insertion and the second a deletion.
-		if (!a.li || !b.ld) {
-			continue;
-		}
-
-		// The object we insert must be equal to what we delete next.
-		if (!equal(a.li, b.ld)) {
-			continue;
-		}
-
-		delete a.li;
-		delete b.ld;
-	}
-
-	ops = ops.filter(function(op) {
-		return Object.keys(op).length > 1;
-	});
-
-	return ops;
-}
+//var optimize = function(ops) {
+//	/*
+//	Optimization loop where we attempt to find operations that needlessly inserts and deletes identical objects right
+//	after each other, and then consolidate them.
+//	 */
+//	for (var i=0, l=ops.length-1; i < l; ++i) {
+//		var a = ops[i], b = ops[i+1];
+//
+//		// The ops must have same path.
+//		if (!equal(a.p.slice(0, -1), b.p.slice(0, -1))) {
+//			continue;
+//		}
+//
+//		// The indices must be successive.
+//		if (a.p[a.p.length-1] + 1 !== b.p[b.p.length-1]) {
+//			continue;
+//		}
+//
+//		// The first operatin must be an insertion and the second a deletion.
+//		if (!a.li || !b.ld) {
+//			continue;
+//		}
+//
+//		// The object we insert must be equal to what we delete next.
+//		if (!equal(a.li, b.ld)) {
+//			continue;
+//		}
+//
+//		delete a.li;
+//		delete b.ld;
+//	}
+//
+//	ops = ops.filter(function(op) {
+//		return Object.keys(op).length > 1;
+//	});
+//
+//	return ops;
+//}
 
 var diff = function(input, output, path=[], diffMatchPatch) {
 	// If the last element of the path is a string, that means we're looking at a key, rather than
@@ -95,8 +96,7 @@ var diff = function(input, output, path=[], diffMatchPatch) {
 
 	// If there is no input, we need to add the new data (output).
 	if (typeof input === "undefined") {
-		var op = { p: path };
-		op[isObject ? "oi" : "li"] = output;
+		var op = json1.insertOp(path, output);
 		return [op];
 	}
 
@@ -168,7 +168,8 @@ var diff = function(input, output, path=[], diffMatchPatch) {
 }
 
 var optimizedDiff = function(input, output, diffMatchPatch) {
-	return optimize(diff(input, output, [], diffMatchPatch));
+	return diff(input, output, [], diffMatchPatch)
+    .reduce(json1.type.compose, null)
 }
 
 module.exports = optimizedDiff;
