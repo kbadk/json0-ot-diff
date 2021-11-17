@@ -332,8 +332,6 @@ describe("Jsondiff", function() {
             json1,
             textUnicode
           });
-          // TODO
-          //expect(json1Op).to.deep.equal(test.expectedJson0Op);
 
           // Test actual application of the expected ops.
           // No need to clone the input, json1 does _not_ mutate the input to `apply`.
