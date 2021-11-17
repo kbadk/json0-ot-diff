@@ -4,6 +4,18 @@ var equal = require("deep-equal");
 
 var diffMatchPatchInstance;
 
+function replaceOp(path, isObject, input, output, json1) {
+	var op;
+	if(json1) {
+		op = json1.replaceOp(path, input, output);
+	} else {
+		op = { p: path };
+		op[isObject ? "od" : "ld"] = input;
+		op[isObject ? "oi" : "li"] = output;
+	}
+	return [op];
+}
+
 /**
  * Convert a number of string patches to OT operations.
  * @param  {JsonMLPath} path Base path for patches to apply to.
@@ -143,15 +155,7 @@ var diff = function(input, output, path=[], options) {
 	// If either of input/output is a primitive type, there is no need to perform deep recursive calls to
 	// figure out what to do. We can just replace the objects.
 	if (primitiveTypes.includes(typeof output) || primitiveTypes.includes(typeof input)) {
-		var op;
-		if(json1) {
-			op = json1.replaceOp(path, input, output);
-		} else {
-			op = { p: path };
-			op[isObject ? "od" : "ld"] = input;
-			op[isObject ? "oi" : "li"] = output;
-		}
-		return [op];
+		return replaceOp(path, isObject, input, output, json1);
 	}
 
 	if (Array.isArray(output) && Array.isArray(input)) {
@@ -185,15 +189,7 @@ var diff = function(input, output, path=[], options) {
 		return ops;
 	} else if (Array.isArray(output) || Array.isArray(input)) {
 		// deal with array/object
-		var op;
-		if(json1) {
-			op = json1.replaceOp(path, input, output);
-		} else {
-			op = { p: path };
-			op[isObject ? "od" : "ld"] = input;
-			op[isObject ? "oi" : "li"] = output;
-		}
-		return [op];
+		return replaceOp(path, isObject, input, output, json1);
 	}
 
 	var ops = [];
