@@ -26,7 +26,7 @@ describe("Jsondiff", function() {
           name: "Add one string to empty array",
           start: [],
           end: ["one"],
-          expectedJson0Op: [
+          expectedCommand: [
             {
               p: [0],
               li: "one"
@@ -37,7 +37,7 @@ describe("Jsondiff", function() {
           name: "Add one number to empty array",
           start: [],
           end: [1],
-          expectedJson0Op: [
+          expectedCommand: [
             {
               p: [0],
               li: 1
@@ -48,7 +48,7 @@ describe("Jsondiff", function() {
           name: "Add one boolean to empty array",
           start: [],
           end: [false],
-          expectedJson0Op: [
+          expectedCommand: [
             {
               p: [0],
               li: false
@@ -59,7 +59,7 @@ describe("Jsondiff", function() {
           name: "Add one string to end of non-empty array",
           start: ["one"],
           end: ["one", "two"],
-          expectedJson0Op: [
+          expectedCommand: [
             {
               p: [1],
               li: "two"
@@ -70,7 +70,7 @@ describe("Jsondiff", function() {
           name: "Add one number to end of non-empty array",
           start: [1],
           end: [1, 2],
-          expectedJson0Op: [
+          expectedCommand: [
             {
               p: [1],
               li: 2
@@ -81,7 +81,7 @@ describe("Jsondiff", function() {
           name: "Add one boolean to end of non-empty array",
           start: [false],
           end: [false, true],
-          expectedJson0Op: [
+          expectedCommand: [
             {
               p: [1],
               li: true
@@ -92,7 +92,7 @@ describe("Jsondiff", function() {
       tests.forEach(test => {
         it(test.name, function() {
           let output = jsondiff(test.start, test.end);
-          expect(output).to.deep.have.same.members(test.expectedJson0Op);
+          expect(output).to.deep.have.same.members(test.expectedCommand);
         });
       });
     });
@@ -102,7 +102,7 @@ describe("Jsondiff", function() {
           name: "Add one string to middle of array",
           start: ["one", "two"],
           end: ["one", "three", "two"],
-          expectedJson0Op: [
+          expectedCommand: [
             {
               p: [1],
               ld: "two",
@@ -118,7 +118,7 @@ describe("Jsondiff", function() {
           name: "Add one number to middle of array",
           start: [1, 2],
           end: [1, 3, 2],
-          expectedJson0Op: [
+          expectedCommand: [
             {
               p: [1],
               ld: 2,
@@ -134,7 +134,7 @@ describe("Jsondiff", function() {
           name: "Add one boolean to middle of array",
           start: [false, false],
           end: [false, true, false],
-          expectedJson0Op: [
+          expectedCommand: [
             {
               p: [1],
               ld: false,
@@ -150,7 +150,7 @@ describe("Jsondiff", function() {
       tests.forEach(test => {
         it(test.name, function() {
           let output = jsondiff(test.start, test.end);
-          expect(output).to.deep.have.same.members(test.expectedJson0Op);
+          expect(output).to.deep.have.same.members(test.expectedCommand);
         });
       });
     });
@@ -160,7 +160,7 @@ describe("Jsondiff", function() {
           name: "Add one string value to empty object",
           start: {},
           end: { one: "two" },
-          expectedJson0Op: [
+          expectedCommand: [
             {
               p: ["one"],
               oi: "two"
@@ -171,7 +171,7 @@ describe("Jsondiff", function() {
           name: "Add one number value to empty object",
           start: {},
           end: { one: 1 },
-          expectedJson0Op: [
+          expectedCommand: [
             {
               p: ["one"],
               oi: 1
@@ -182,7 +182,7 @@ describe("Jsondiff", function() {
           name: "Add one boolean value to empty object",
           start: {},
           end: { one: true },
-          expectedJson0Op: [
+          expectedCommand: [
             {
               p: ["one"],
               oi: true
@@ -193,7 +193,7 @@ describe("Jsondiff", function() {
       tests.forEach(test => {
         it(test.name, function() {
           let output = jsondiff(test.start, test.end);
-          expect(output).to.deep.equal(test.expectedJson0Op);
+          expect(output).to.deep.equal(test.expectedCommand);
         });
       });
     });
@@ -203,7 +203,7 @@ describe("Jsondiff", function() {
           name: "Replaces one string value to empty object",
           start: { one: "one" },
           end: { one: "two" },
-          expectedJson0Op: [
+          expectedCommand: [
             {
               p: ["one"],
               oi: "two",
@@ -215,7 +215,7 @@ describe("Jsondiff", function() {
           name: "Replaces one number value to empty object",
           start: { one: 1 },
           end: { one: 2 },
-          expectedJson0Op: [
+          expectedCommand: [
             {
               p: ["one"],
               oi: 2,
@@ -227,7 +227,7 @@ describe("Jsondiff", function() {
           name: "Replaces one boolean value to empty object",
           start: { one: true },
           end: { one: false },
-          expectedJson0Op: [
+          expectedCommand: [
             {
               p: ["one"],
               oi: false,
@@ -239,7 +239,7 @@ describe("Jsondiff", function() {
       tests.forEach(test => {
         it(test.name, function() {
           let output = jsondiff(test.start, test.end);
-          expect(output).to.deep.equal(test.expectedJson0Op);
+          expect(output).to.deep.equal(test.expectedCommand);
         });
       });
     });
@@ -250,7 +250,7 @@ describe("Jsondiff", function() {
           name: "Top level string",
           start: "one",
           end: "two",
-          expectedJson0Op: [
+          expectedCommand: [
             { sd: "one", p: [0] },
             { si: "two", p: [0] }
           ]
@@ -259,7 +259,7 @@ describe("Jsondiff", function() {
           name: "Strings with a common prefix, null case",
           start: { one: "one" },
           end: { one: "two" },
-          expectedJson0Op: [
+          expectedCommand: [
             { sd: "one", p: [ "one", 0 ] },
             { si: "two", p: [ "one", 0 ] }
           ]
@@ -268,7 +268,7 @@ describe("Jsondiff", function() {
           name: "Strings with a common prefix, non-null case",
           start: { one: "1234abcdef" },
           end: { one: "1234xyz" },
-          expectedJson0Op: [
+          expectedCommand: [
             { sd: 'abcdef', p: [ 'one', 4 ] },
             { si: 'xyz', p: [ 'one', 4 ] }
           ]
@@ -277,7 +277,7 @@ describe("Jsondiff", function() {
           name: "Strings with a common prefix, whole case",
           start: { one: "1234" },
           end: { one: "1234xyz" },
-          expectedJson0Op: [
+          expectedCommand: [
             { si: 'xyz', p: [ 'one', 4 ] }
           ]
         },
@@ -285,7 +285,7 @@ describe("Jsondiff", function() {
           name: "Strings with a common suffix, non-null case",
           start: { one: "abcdef1234" },
           end: { one: "xyz1234" },
-          expectedJson0Op: [
+          expectedCommand: [
             { sd: 'abcdef', p: [ 'one', 0 ] },
             { si: 'xyz', p: [ 'one', 0 ] }
           ]
@@ -294,7 +294,7 @@ describe("Jsondiff", function() {
           name: "Strings with a common suffix, whole case",
           start: { one: "1234" },
           end: { one: "xyz1234" },
-          expectedJson0Op: [
+          expectedCommand: [
             { si: 'xyz', p: [ 'one', 0 ] }
           ]
         },
@@ -302,7 +302,7 @@ describe("Jsondiff", function() {
           name: "Example from README",
           start: ["foo", "The only change here is at the end.", 1, 2, 3],
           end: ["foo", "The only change here is at the very end.", 1, 2],
-          expectedJson0Op: [
+          expectedCommand: [
             { p: [ 1, 31 ], si: "very " },
             { p: [ 4 ], ld: 3 }
           ]
@@ -315,7 +315,7 @@ describe("Jsondiff", function() {
           // Verify JSON0 //
           //////////////////
           let json0Op = jsondiff(test.start, test.end, diffMatchPatch);
-          expect(json0Op).to.deep.equal(test.expectedJson0Op);
+          expect(json0Op).to.deep.equal(test.expectedCommand);
 
           // Test actual application of the expected ops.
           // Clone the input, because json0 mutates the input to `apply`.
