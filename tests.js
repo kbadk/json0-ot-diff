@@ -48,6 +48,10 @@ var tests = [
 		{},
 		[]
 	],
+	[
+		[],
+		{}
+	],
 	// tests for oi/od
 	[
 		{},

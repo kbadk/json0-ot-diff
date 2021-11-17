@@ -100,7 +100,7 @@ var diff = function(input, output, path=[], options) {
 	var isObject = typeof path[path.length-1] === "string" || path.length === 0;
 
 	// If input and output are equal, no operations are needed.
-	if (equal(input, output)) {
+	if (equal(input, output) && Array.isArray(input) === Array.isArray(output)) {
 		return [];
 	}
 
@@ -185,9 +185,14 @@ var diff = function(input, output, path=[], options) {
 		return ops;
 	} else if (Array.isArray(output) || Array.isArray(input)) {
 		// deal with array/object
-		var op = { p: path };
-		op[isObject ? "od" : "ld"] = input;
-		op[isObject ? "oi" : "li"] = output;
+		var op;
+		if(json1) {
+			op = json1.replaceOp(path, input, output);
+		} else {
+			op = { p: path };
+			op[isObject ? "od" : "ld"] = input;
+			op[isObject ? "oi" : "li"] = output;
+		}
 		return [op];
 	}
 
