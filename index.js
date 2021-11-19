@@ -6,7 +6,7 @@ var diffMatchPatchInstance;
 
 function replaceOp(path, isObject, input, output, json1) {
 	var op;
-	if(json1) {
+	if (json1) {
 		op = json1.replaceOp(path, input, output);
 	} else {
 		op = { p: path };
@@ -33,7 +33,7 @@ function patchesToOps(path, oldValue, newValue, diffMatchPatch, json1, textUnico
 		patch.diffs.forEach(function([type, value]) {
 			switch (type) {
 				case diffMatchPatch.DIFF_DELETE:
-					if(textUnicode){
+					if (textUnicode) {
 						var unicodeOp = textUnicode.remove(offset, value);
 						ops.push(json1.editOp(path, textUnicode.type, unicodeOp));
 					} else {
@@ -41,7 +41,7 @@ function patchesToOps(path, oldValue, newValue, diffMatchPatch, json1, textUnico
 					}
 					break;
 				case diffMatchPatch.DIFF_INSERT:
-					if(textUnicode){
+					if (textUnicode) {
 						var unicodeOp = textUnicode.insert(offset, value);
 						ops.push(json1.editOp(path, textUnicode.type, unicodeOp));
 					} else {
@@ -60,7 +60,7 @@ function patchesToOps(path, oldValue, newValue, diffMatchPatch, json1, textUnico
 }
 
 var optimize = function(ops, options) {
-	if(options && options.json1) {
+	if (options && options.json1) {
 		var compose = options.json1.type.compose;
 		return ops.reduce(compose, null);
 	}
@@ -119,7 +119,7 @@ var diff = function(input, output, path=[], options) {
 	// If there is no output, we need to delete the current data (input).
 	if (typeof output === "undefined") {
 		var op;
-		if(json1) {
+		if (json1) {
 			op = json1.removeOp(path, output);
 		} else {
 			op = { p: path };
@@ -131,7 +131,7 @@ var diff = function(input, output, path=[], options) {
 	// If there is no input, we need to add the new data (output).
 	if (typeof input === "undefined") {
 		var op;
-		if(json1) {
+		if (json1) {
 			op = json1.insertOp(path, output);
 		} else {
 			op = { p: path };
