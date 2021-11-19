@@ -1,6 +1,6 @@
 {
   "name": "json0-ot-diff",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "description": "Finds differences between two JSON object and generates operational transformation (OT) operations for transforming the first object into the second.",
   "main": "index.js",
   "scripts": {
