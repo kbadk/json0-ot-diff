@@ -327,11 +327,13 @@ describe("Jsondiff", function() {
           //////////////////
           // Verify JSON1 //
           //////////////////
-          let json1Op = jsondiff(test.start, test.end, {
+          let json1Op = jsondiff(
+            test.start,
+            test.end,
             diffMatchPatch,
             json1,
             textUnicode
-          });
+          );
 
           // Test actual application of the expected ops.
           // No need to clone the input, json1 does _not_ mutate the input to `apply`.

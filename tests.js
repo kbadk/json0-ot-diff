@@ -150,11 +150,13 @@ tests.forEach(function([input, output]) {
 
 // Actual tests for json1
 tests.forEach(function([input, output]) {
-	var ops = jsondiff(input, output, {
+	var ops = jsondiff(
+		input,
+		output,
 		diffMatchPatch,
 		json1,
 		textUnicode
-	});
+	);
 	assert(equal(input, json1.type.apply(input, ops)));
 });
 

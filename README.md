@@ -40,7 +40,9 @@ The [JSON1 OT Type](https://github.com/ottypes/json1) is supported as well. To g
 	var diff = jsondiff(
 		["foo", "The only change here is at the end.", 1, 2, 3],
 		["foo", "The only change here is at the very end.", 1, 2],
-		{ diffMatchPatch, json1, textUnicode }
+		diffMatchPatch,
+		json1,
+		textUnicode
 	);
 	console.log(diff);
 

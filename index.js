@@ -201,11 +201,8 @@ var diff = function(input, output, path=[], options) {
 	return ops;
 }
 
-var optimizedDiff = function(input, output, options) {
-	if(options && !options.diffMatchPatch){
-		options = { diffMatchPatch: options }
-	}
-
+var optimizedDiff = function(input, output, diffMatchPatch, json1, textUnicode) {
+	var options = { diffMatchPatch, json1, textUnicode };
 	return optimize(diff(input, output, [], options), options);
 }
 
