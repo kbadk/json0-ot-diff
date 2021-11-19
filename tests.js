@@ -3,7 +3,10 @@
 var assert = require("assert");
 var equal = require("deep-equal");
 var clone = require("clone");
-var json0 = require("ot-json0/lib/json0");
+var json0 = require("ot-json0");
+let json1 = require("ot-json1");
+let diffMatchPatch = require("diff-match-patch");
+let textUnicode = require("ot-text-unicode");
 var jsondiff = require("./index.js");
 
 var tests = [
@@ -44,6 +47,10 @@ var tests = [
 	[
 		{},
 		[]
+	],
+	[
+		[],
+		{}
 	],
 	// tests for oi/od
 	[
@@ -130,15 +137,27 @@ tests.forEach(function([input, output]) {
 	assert(equal(coutput, output));
 });
 
-// Actual tests
+// Actual tests for json0
 tests.forEach(function([input, output]) {
 	var ops = jsondiff(input, output);
 	ops.forEach(function(op) {
 		assert.doesNotThrow(function() {
-			input = json0.apply(input, [op]);
+			input = json0.type.apply(input, [op]);
 		}, null, "json0 could not apply transformation");
 	});
 	assert(equal(input, output));
+});
+
+// Actual tests for json1
+tests.forEach(function([input, output]) {
+	var ops = jsondiff(
+		input,
+		output,
+		diffMatchPatch,
+		json1,
+		textUnicode
+	);
+	assert(equal(input, json1.type.apply(input, ops)));
 });
 
 console.log("No errors!");

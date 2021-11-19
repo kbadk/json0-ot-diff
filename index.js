@@ -2,6 +2,20 @@
 
 var equal = require("deep-equal");
 
+var diffMatchPatchInstance;
+
+function replaceOp(path, isObject, input, output, json1) {
+	var op;
+	if (json1) {
+		op = json1.replaceOp(path, input, output);
+	} else {
+		op = { p: path };
+		op[isObject ? "od" : "ld"] = input;
+		op[isObject ? "oi" : "li"] = output;
+	}
+	return [op];
+}
+
 /**
  * Convert a number of string patches to OT operations.
  * @param  {JsonMLPath} path Base path for patches to apply to.
@@ -9,7 +23,7 @@ var equal = require("deep-equal");
  * @param  {string} newValue New value.
  * @return {Ops}             List of resulting operations.
  */
-function patchesToOps(path, oldValue, newValue, diffMatchPatch, diffMatchPatchInstance) {
+function patchesToOps(path, oldValue, newValue, diffMatchPatch, json1, textUnicode) {
 	const ops = [];
 
 	var patches = diffMatchPatchInstance.patch_make(oldValue, newValue);
@@ -19,10 +33,20 @@ function patchesToOps(path, oldValue, newValue, diffMatchPatch, diffMatchPatchIn
 		patch.diffs.forEach(function([type, value]) {
 			switch (type) {
 				case diffMatchPatch.DIFF_DELETE:
-					ops.push({ sd: value, p: [...path, offset] });
+					if (textUnicode) {
+						var unicodeOp = textUnicode.remove(offset, value);
+						ops.push(json1.editOp(path, textUnicode.type, unicodeOp));
+					} else {
+						ops.push({ sd: value, p: [...path, offset] });
+					}
 					break;
 				case diffMatchPatch.DIFF_INSERT:
-					ops.push({ si: value, p: [...path, offset] });
+					if (textUnicode) {
+						var unicodeOp = textUnicode.insert(offset, value);
+						ops.push(json1.editOp(path, textUnicode.type, unicodeOp));
+					} else {
+						ops.push({ si: value, p: [...path, offset] });
+					}
 					// falls through intentionally
 				case diffMatchPatch.DIFF_EQUAL:
 					offset += value.length;
@@ -35,9 +59,11 @@ function patchesToOps(path, oldValue, newValue, diffMatchPatch, diffMatchPatchIn
 	return ops;
 }
 
-var diffMatchPatchInstance;
-
-var optimize = function(ops) {
+var optimize = function(ops, options) {
+	if (options && options.json1) {
+		var compose = options.json1.type.compose;
+		return ops.reduce(compose, null);
+	}
 	/*
 	Optimization loop where we attempt to find operations that needlessly inserts and deletes identical objects right
 	after each other, and then consolidate them.
@@ -76,27 +102,41 @@ var optimize = function(ops) {
 	return ops;
 }
 
-var diff = function(input, output, path=[], diffMatchPatch) {
+var diff = function(input, output, path=[], options) {
+	var diffMatchPatch = options && options.diffMatchPatch;
+	var json1 = options && options.json1;
+	var textUnicode = options && options.textUnicode;
+
 	// If the last element of the path is a string, that means we're looking at a key, rather than
 	// a number index. Objects use keys, so the target for our insertion/deletion is an object.
 	var isObject = typeof path[path.length-1] === "string" || path.length === 0;
 
 	// If input and output are equal, no operations are needed.
-	if (equal(input, output)) {
+	if (equal(input, output) && Array.isArray(input) === Array.isArray(output)) {
 		return [];
 	}
 
 	// If there is no output, we need to delete the current data (input).
 	if (typeof output === "undefined") {
-		var op = { p: path };
-		op[isObject ? "od" : "ld"] = input;
+		var op;
+		if (json1) {
+			op = json1.removeOp(path, output);
+		} else {
+			op = { p: path };
+			op[isObject ? "od" : "ld"] = input;
+		}
 		return [op];
 	}
 
 	// If there is no input, we need to add the new data (output).
 	if (typeof input === "undefined") {
-		var op = { p: path };
-		op[isObject ? "oi" : "li"] = output;
+		var op;
+		if (json1) {
+			op = json1.insertOp(path, output);
+		} else {
+			op = { p: path };
+			op[isObject ? "oi" : "li"] = output;
+		}
 		return [op];
 	}
 
@@ -108,17 +148,14 @@ var diff = function(input, output, path=[], diffMatchPatch) {
 			diffMatchPatchInstance = new diffMatchPatch();
 		}
 
-		return patchesToOps(path, input, output, diffMatchPatch, diffMatchPatchInstance);
+		return patchesToOps(path, input, output, diffMatchPatch, json1, textUnicode);
 	}
 
 	var primitiveTypes = ["string", "number", "boolean"];
 	// If either of input/output is a primitive type, there is no need to perform deep recursive calls to
 	// figure out what to do. We can just replace the objects.
 	if (primitiveTypes.includes(typeof output) || primitiveTypes.includes(typeof input)) {
-		var op = { p: path };
-		op[isObject ? "od" : "ld"] = input;
-		op[isObject ? "oi" : "li"] = output;
-		return [op];
+		return replaceOp(path, isObject, input, output, json1);
 	}
 
 	if (Array.isArray(output) && Array.isArray(input)) {
@@ -127,7 +164,7 @@ var diff = function(input, output, path=[], diffMatchPatch) {
 		var minLen = Math.min(inputLen, outputLen);
 		var ops = [];
 		for (var i=0; i < minLen; ++i) {
-			var newOps = diff(input[i], output[i], [...path, i], diffMatchPatch);
+			var newOps = diff(input[i], output[i], [...path, i], options);
 			newOps.forEach(function(op) {
 				ops.push(op);
 			});
@@ -135,7 +172,7 @@ var diff = function(input, output, path=[], diffMatchPatch) {
 		if (outputLen > inputLen) {
 			// deal with array insert
 			for (var i=minLen; i < outputLen; i++) {
-				var newOps = diff(undefined, output[i], [...path, i], diffMatchPatch);
+				var newOps = diff(undefined, output[i], [...path, i], options);
 				newOps.forEach(function(op) {
 					ops.push(op);
 				});
@@ -143,7 +180,7 @@ var diff = function(input, output, path=[], diffMatchPatch) {
 		} else if (outputLen < inputLen) {
 			// deal with array delete
 			for (var i=minLen; i < inputLen; i++) {
-				var newOps = diff(input[i], undefined, [...path, minLen], diffMatchPatch);
+				var newOps = diff(input[i], undefined, [...path, minLen], options);
 				newOps.forEach(function(op) {
 					ops.push(op);
 				});
@@ -152,23 +189,21 @@ var diff = function(input, output, path=[], diffMatchPatch) {
 		return ops;
 	} else if (Array.isArray(output) || Array.isArray(input)) {
 		// deal with array/object
-		var op = { p: path };
-		op[isObject ? "od" : "ld"] = input;
-		op[isObject ? "oi" : "li"] = output;
-		return [op];
+		return replaceOp(path, isObject, input, output, json1);
 	}
 
 	var ops = [];
 	var keys = new Set([...Object.keys(input), ...Object.keys(output)]);
 	keys.forEach(function(key) {
-		var newOps = diff(input[key], output[key], [...path, key], diffMatchPatch);
+		var newOps = diff(input[key], output[key], [...path, key], options);
 		ops = ops.concat(newOps);
 	});
 	return ops;
 }
 
-var optimizedDiff = function(input, output, diffMatchPatch) {
-	return optimize(diff(input, output, [], diffMatchPatch));
+var optimizedDiff = function(input, output, diffMatchPatch, json1, textUnicode) {
+	var options = { diffMatchPatch, json1, textUnicode };
+	return optimize(diff(input, output, [], options), options);
 }
 
 module.exports = optimizedDiff;

@@ -4,12 +4,19 @@
 let assert = require("assert");
 // Library we're testing
 let jsondiff = require("../index.js");
-// json0 transform to work out if the right transform is being created
+// OT types.
+// These are applied to work out if the right transform is being created
 let json0 = require("ot-json0");
+let json1 = require("ot-json1");
+let textUnicode = require("ot-text-unicode");
 // Assertion expectations
 let expect = require("chai").expect;
 // Library for computing differences between strings
 let diffMatchPatch = require("diff-match-patch");
+
+let clone = function(object) {
+  return JSON.parse(JSON.stringify(object));
+}
 
 describe("Jsondiff", function() {
   describe("Operations", function() {
@@ -303,12 +310,35 @@ describe("Jsondiff", function() {
       ];
       tests.forEach(test => {
         it(test.name, function() {
-          let output = jsondiff(test.start, test.end, diffMatchPatch);
-          expect(output).to.deep.equal(test.expectedCommand);
 
-          // Test actual application of the expected command.
-          let appliedEnd = json0.type.apply(test.start, test.expectedCommand);
-          expect(appliedEnd).to.deep.equal(test.end);
+          //////////////////
+          // Verify JSON0 //
+          //////////////////
+          let json0Op = jsondiff(test.start, test.end, diffMatchPatch);
+          expect(json0Op).to.deep.equal(test.expectedCommand);
+
+          // Test actual application of the expected ops.
+          // Clone the input, because json0 mutates the input to `apply`.
+          let json0Start = clone(test.start);
+          let json0End = json0.type.apply(json0Start, json0Op);
+          expect(json0End).to.deep.equal(test.end);
+
+
+          //////////////////
+          // Verify JSON1 //
+          //////////////////
+          let json1Op = jsondiff(
+            test.start,
+            test.end,
+            diffMatchPatch,
+            json1,
+            textUnicode
+          );
+
+          // Test actual application of the expected ops.
+          // No need to clone the input, json1 does _not_ mutate the input to `apply`.
+          let json1End = json1.type.apply(test.start, json1Op);
+          expect(json1End).to.deep.equal(test.end);
         });
       });
     });
