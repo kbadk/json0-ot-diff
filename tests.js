@@ -10,6 +10,28 @@ let textUnicode = require("ot-text-unicode");
 var jsondiff = require("./index.js");
 
 var tests = [
+  //tests of equality
+  [
+	[
+		5,
+		5,
+	],
+	[
+		"foo",
+		"foo",
+	],
+	[
+		["foo"],
+		["foo"],
+	],
+	[
+		[],
+		[],
+	],
+	[
+		{},
+		{},
+	],
 	//tests of li/ld
 	[
 		[],
