@@ -98,15 +98,9 @@ describe("Jsondiff", function() {
           start: ["one", "two"],
           end: ["one", "three", "two"],
           expectedCommand: [
-            {
-              p: [1],
-              ld: "two",
-              li: "three"
-            },
-            {
-              p: [2],
-              li: "two"
-            }
+            { sd: 'wo', p: [ 1, 1 ] },
+            { si: 'hree', p: [ 1, 1 ] },
+            { p: [ 2 ], li: 'two' }
           ]
         },
         {
@@ -189,11 +183,8 @@ describe("Jsondiff", function() {
           start: { one: "one" },
           end: { one: "two" },
           expectedCommand: [
-            {
-              p: ["one"],
-              oi: "two",
-              od: "one"
-            }
+            { sd: 'one', p: [ 'one', 0 ] },
+            { si: 'two', p: [ 'one', 0 ] }
           ]
         },
         {
