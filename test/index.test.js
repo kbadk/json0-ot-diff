@@ -270,6 +270,15 @@ describe("Jsondiff", function() {
           ]
         },
         {
+          name: "Strings suffix/prefix overlap, overlap case",
+          start: { one: "123456xxx" },
+          end: { one: "xxxabcd" },
+          expectedCommand: [
+            { "p": [ "one", 0 ], "sd": "123456xxx" },
+            { "p": [ "one", 0 ], "si": "xxxabcd" }
+          ]
+        },
+        {
           name: "Example from README",
           start: ["foo", "The only change here is at the end.", 1, 2, 3],
           end: ["foo", "The only change here is at the very end.", 1, 2],

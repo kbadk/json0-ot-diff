@@ -11,7 +11,6 @@ var jsondiff = require("./index.js");
 
 var tests = [
   //tests of equality
-  [
 	[
 		5,
 		5,
@@ -87,6 +86,43 @@ var tests = [
 		[	{ foo: 'bar' } ],
 		[	{} ]
 	],
+	// string tests
+  // Inspired by https://github.com/google/diff-match-patch/blob/master/javascript/tests/diff_match_patch_test.js
+  ["abc", "xyz"],
+  ["1234abcdef", "1234xyz"],
+  ["1234", "1234xyz"],
+  ["abc", "xyz"],
+  ["abcdef1234", "xyz1234"],
+  ["1234", "xyz1234"],
+  ["", "abcd"],
+  ["abc", "abcd"],
+  ["123456", "abcd"],
+  ["123456xxx", "xxxabcd"],
+  ["fi", "\ufb01i"],
+  ["1234567890", "abcdef"],
+  ["12345", "23"],
+  ["1234567890", "a345678z"],
+  ["a345678z", "1234567890"],
+  ["abc56789z", "1234567890"],
+  ["a23456xyz", "1234567890"],
+  ["121231234123451234123121", "a1234123451234z"],
+  ["x-=-=-=-=-=-=-=-=-=-=-=-=", "xx-=-=-=-=-=-=-="],
+  ["-=-=-=-=-=-=-=-=-=-=-=-=y", "-=-=-=-=-=-=-=yy"],
+  ["qHilloHelloHew", "xHelloHeHulloy"],
+  ["abcdefghijk", "fgh"],
+  ["abcdefghijk", "efxhi"],
+  ["abcdefghijk", "cdefxyhijk"],
+  ["abcdefghijk", "bxy"],
+  ["123456789xx0", "3456789x0"],
+  ["abcdefghijk", "efxyhi"],
+  ["abcdefghijk", "bcdef"],
+  ["abcdexyzabcde", "abccde"],
+  ["abcdefghijklmnopqrstuvwxyz01234567890", "XabXcdXefXghXijXklXmnXopXqrXstXuvXwxXyzX01X23X45X67X89X0"],
+  ["abcdef1234567890123456789012345678901234567890123456789012345678901234567890uvwxyz", "abcdefuvwxyz"],
+  ["1234567890123456789012345678901234567890123456789012345678901234567890", "abc"],
+  ["XY", "XtestY"],
+  ["XXXXYYYY", "XXXXtestYYYY"],
+  ["The quick brown fox jumps over the lazy dog.", "Woof"],
 	// big tests
 	[
 		[],
@@ -162,6 +198,10 @@ tests.forEach(function([input, output]) {
 // Actual tests for json0
 tests.forEach(function([input, output]) {
 	var ops = jsondiff(input, output);
+
+  // Don't let json0 mutate the input,
+  // so we can use it in later tests.
+  input = clone(input);
 	ops.forEach(function(op) {
 		assert.doesNotThrow(function() {
 			input = json0.type.apply(input, [op]);
@@ -179,7 +219,7 @@ tests.forEach(function([input, output]) {
 		json1,
 		textUnicode
 	);
-	assert(equal(input, json1.type.apply(input, ops)));
+	assert(equal(json1.type.apply(input, ops), output));
 });
 
 console.log("No errors!");
