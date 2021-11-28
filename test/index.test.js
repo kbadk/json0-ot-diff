@@ -309,6 +309,12 @@ function runTests(tests) {
       let json0End = json0.type.apply(json0Start, json0Op);
       expect(json0End).to.deep.equal(test.end);
 
+      // Test application of ops generated _without_ diffMatchPatch.
+      let json0SimpleOp = jsondiff(test.start, test.end);
+      let json0SimpleStart = clone(test.start);
+      let json0SimpleEnd = json0.type.apply(json0SimpleStart, json0SimpleOp);
+      expect(json0SimpleEnd).to.deep.equal(test.end);
+
 
       //////////////////
       // Verify JSON1 //
