@@ -89,12 +89,7 @@ describe("Jsondiff", function() {
           ]
         }
       ];
-      tests.forEach(test => {
-        it(test.name, function() {
-          let output = jsondiff(test.start, test.end);
-          expect(output).to.deep.have.same.members(test.expectedCommand);
-        });
-      });
+      runTests(tests);
     });
     describe("List Replace (oi + od)", function() {
       let tests = [
@@ -103,15 +98,9 @@ describe("Jsondiff", function() {
           start: ["one", "two"],
           end: ["one", "three", "two"],
           expectedCommand: [
-            {
-              p: [1],
-              ld: "two",
-              li: "three"
-            },
-            {
-              p: [2],
-              li: "two"
-            }
+            { sd: 'wo', p: [ 1, 1 ] },
+            { si: 'hree', p: [ 1, 1 ] },
+            { p: [ 2 ], li: 'two' }
           ]
         },
         {
@@ -147,12 +136,7 @@ describe("Jsondiff", function() {
           ]
         }
       ];
-      tests.forEach(test => {
-        it(test.name, function() {
-          let output = jsondiff(test.start, test.end);
-          expect(output).to.deep.have.same.members(test.expectedCommand);
-        });
-      });
+      runTests(tests);
     });
     describe("Object Insert (oi)", function() {
       let tests = [
@@ -190,12 +174,7 @@ describe("Jsondiff", function() {
           ]
         }
       ];
-      tests.forEach(test => {
-        it(test.name, function() {
-          let output = jsondiff(test.start, test.end);
-          expect(output).to.deep.equal(test.expectedCommand);
-        });
-      });
+      runTests(tests);
     });
     describe("Object Replace (oi + od)", function() {
       let tests = [
@@ -204,11 +183,8 @@ describe("Jsondiff", function() {
           start: { one: "one" },
           end: { one: "two" },
           expectedCommand: [
-            {
-              p: ["one"],
-              oi: "two",
-              od: "one"
-            }
+            { sd: 'one', p: [ 'one', 0 ] },
+            { si: 'two', p: [ 'one', 0 ] }
           ]
         },
         {
@@ -236,12 +212,7 @@ describe("Jsondiff", function() {
           ]
         }
       ];
-      tests.forEach(test => {
-        it(test.name, function() {
-          let output = jsondiff(test.start, test.end);
-          expect(output).to.deep.equal(test.expectedCommand);
-        });
-      });
+      runTests(tests);
     });
     describe("String Mutation (si + sd)", function() {
       // These test cases come from diff-match-patch tests.
@@ -299,6 +270,15 @@ describe("Jsondiff", function() {
           ]
         },
         {
+          name: "Strings suffix/prefix overlap, overlap case",
+          start: { one: "123456xxx" },
+          end: { one: "xxxabcd" },
+          expectedCommand: [
+            { "p": [ "one", 0 ], "sd": "123456xxx" },
+            { "p": [ "one", 0 ], "si": "xxxabcd" }
+          ]
+        },
+        {
           name: "Example from README",
           start: ["foo", "The only change here is at the end.", 1, 2, 3],
           end: ["foo", "The only change here is at the very end.", 1, 2],
@@ -308,39 +288,49 @@ describe("Jsondiff", function() {
           ]
         }
       ];
-      tests.forEach(test => {
-        it(test.name, function() {
-
-          //////////////////
-          // Verify JSON0 //
-          //////////////////
-          let json0Op = jsondiff(test.start, test.end, diffMatchPatch);
-          expect(json0Op).to.deep.equal(test.expectedCommand);
-
-          // Test actual application of the expected ops.
-          // Clone the input, because json0 mutates the input to `apply`.
-          let json0Start = clone(test.start);
-          let json0End = json0.type.apply(json0Start, json0Op);
-          expect(json0End).to.deep.equal(test.end);
-
-
-          //////////////////
-          // Verify JSON1 //
-          //////////////////
-          let json1Op = jsondiff(
-            test.start,
-            test.end,
-            diffMatchPatch,
-            json1,
-            textUnicode
-          );
-
-          // Test actual application of the expected ops.
-          // No need to clone the input, json1 does _not_ mutate the input to `apply`.
-          let json1End = json1.type.apply(test.start, json1Op);
-          expect(json1End).to.deep.equal(test.end);
-        });
-      });
+      runTests(tests);
     });
   });
 });
+
+function runTests(tests) {
+  tests.forEach(test => {
+    it(test.name, function() {
+
+      //////////////////
+      // Verify JSON0 //
+      //////////////////
+      let json0Op = jsondiff(test.start, test.end, diffMatchPatch);
+      expect(json0Op).to.deep.equal(test.expectedCommand);
+
+      // Test actual application of the expected ops.
+      // Clone the input, because json0 mutates the input to `apply`.
+      let json0Start = clone(test.start);
+      let json0End = json0.type.apply(json0Start, json0Op);
+      expect(json0End).to.deep.equal(test.end);
+
+      // Test application of ops generated _without_ diffMatchPatch.
+      let json0SimpleOp = jsondiff(test.start, test.end);
+      let json0SimpleStart = clone(test.start);
+      let json0SimpleEnd = json0.type.apply(json0SimpleStart, json0SimpleOp);
+      expect(json0SimpleEnd).to.deep.equal(test.end);
+
+
+      //////////////////
+      // Verify JSON1 //
+      //////////////////
+      let json1Op = jsondiff(
+        test.start,
+        test.end,
+        diffMatchPatch,
+        json1,
+        textUnicode
+      );
+
+      // Test actual application of the expected ops.
+      // No need to clone the input, json1 does _not_ mutate the input to `apply`.
+      let json1End = json1.type.apply(test.start, json1Op);
+      expect(json1End).to.deep.equal(test.end);
+    });
+  });
+}
