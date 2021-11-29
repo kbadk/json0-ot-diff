@@ -10,7 +10,7 @@ let textUnicode = require("ot-text-unicode");
 var jsondiff = require("./index.js");
 
 var tests = [
-  //tests of equality
+	// Tests of equality
 	[
 		5,
 		5,
@@ -31,7 +31,7 @@ var tests = [
 		{},
 		{},
 	],
-	//tests of li/ld
+	// Tests of li/ld
 	[
 		[],
 		["foo"]
@@ -64,7 +64,7 @@ var tests = [
 		["foo", "bar", "quux"],
 		["bar", "quux"]
 	],
-	// tests for object/array
+	// Tests for object/array
 	[
 		{},
 		[]
@@ -73,7 +73,7 @@ var tests = [
 		[],
 		{}
 	],
-	// tests for oi/od
+	// Tests for oi/od
 	[
 		{},
 		{"foo":"bar"}
@@ -86,7 +86,7 @@ var tests = [
 		[	{ foo: 'bar' } ],
 		[	{} ]
 	],
-	// string tests
+	// String tests
 	// Inspired by https://github.com/google/diff-match-patch/blob/master/javascript/tests/diff_match_patch_test.js
 	["abc", "xyz"],
 	["1234abcdef", "1234xyz"],
@@ -123,7 +123,7 @@ var tests = [
 	["XY", "XtestY"],
 	["XXXXYYYY", "XXXXtestYYYY"],
 	["The quick brown fox jumps over the lazy dog.", "Woof"],
-	// big tests
+	// Big tests
 	[
 		[],
 		["the", {"quick":"brown", "fox":"jumped"}, "over", {"the": ["lazy", "dog"]}]
@@ -136,7 +136,7 @@ var tests = [
 		[["the", {"quick":"black", "fox":"jumped"}, "over", {"the": ["lazy", "dog"]}]],
 		["the", {"quick":"brown", "fox":"leapt"}, "over", {"the": ["stupid", "dog"]}]
 	],
-	// real-life jsonml tests
+	// Real-life jsonml tests
 	[
 		[ 'html', {}, [ 'body', {}, '\n\n', '\n\n',     [ 'p', {}, 'Quux!' ] ], '\n' ],
 		[ 'html', {}, [ 'body', {}, '\n\n', '\n\n\n\n', [ 'p', {}, 'Quux!' ] ], '\n' ]
