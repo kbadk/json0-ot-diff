@@ -86,6 +86,14 @@ var tests = [
 		[	{ foo: 'bar' } ],
 		[	{} ]
 	],
+	// Null tests
+	[null, null],
+	[null, "foo"],
+	[null, 123],
+	["foo", null],
+	[123, null],
+	[null, {}],
+	[{}, null],
 	// String tests
 	// Inspired by https://github.com/google/diff-match-patch/blob/master/javascript/tests/diff_match_patch_test.js
 	["abc", "xyz"],
