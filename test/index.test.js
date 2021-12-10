@@ -291,6 +291,67 @@ describe("Jsondiff", function() {
       runTests(tests);
     });
   });
+  describe("JSON1", function () {
+    describe("Reversible remove", function () {
+      let tests = [
+        {
+          name: "Remove last entry",
+          start: [1, 2, 3],
+          end: [1, 2],
+          expectedCommand: [2, { r: 3 }],
+        },
+        {
+          name: "Remove middle entry",
+          start: [1, 2, 3],
+          end: [1, 3],
+          expectedCommand: [
+            [1, { i: 3, r: 2 }],
+            [2, { r: 3 }],
+          ],
+        },
+        {
+          name: "Remove first entry",
+          start: [1, 2, 3],
+          end: [2, 3],
+          expectedCommand: [
+            [0, { i: 2, r: 1 }],
+            [1, { i: 3, r: 2 }],
+            [2, { r: 3 }],
+          ],
+        },
+        {
+          name: "Remove multiple",
+          start: [1, 2, 3],
+          end: [1],
+          expectedCommand: [
+            [1, { r: 2 }],
+            [2, { r: 3 }],
+          ],
+        },
+        {
+          name: "Remove object",
+          start: [1, 2, { a: 1 }],
+          end: [1, 2],
+          expectedCommand: [2, { r: { a: 1 } }],
+        },
+      ];
+
+      tests.forEach((test) => {
+        it(test.name, function () {
+          let json1Op = jsondiff(
+            test.start,
+            test.end,
+            diffMatchPatch,
+            json1,
+            textUnicode
+          );
+          expect(json1Op).to.deep.equal(test.expectedCommand);
+          let json1End = json1.type.apply(test.start, json1Op);
+          expect(json1End).to.deep.equal(test.end);
+        });
+      });
+    });
+  });
 });
 
 function runTests(tests) {
