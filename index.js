@@ -120,7 +120,7 @@ var diff = function(input, output, path=[], options) {
 	if (typeof output === "undefined") {
 		var op;
 		if (json1) {
-			op = json1.removeOp(path, output);
+			op = json1.removeOp(path, input);
 		} else {
 			op = { p: path };
 			op[isObject ? "od" : "ld"] = input;
