@@ -140,6 +140,22 @@ var diff = function(input, output, path=[], options) {
 		return [op];
 	}
 
+	// If input or output is null, we need to delete it then add new data.
+	if (input === null || output === null) {
+		var ops = [];
+		if (json1) {
+			ops.push(json1.removeOp(path, input));
+			ops.push(json1.insertOp(path, output));
+		} else {
+			var op_delete = { p: path };
+			op_delete[isObject ? "od" : "ld"] = input;
+			var op_insert = { p: path };
+			op_insert[isObject ? "oi" : "li"] = output;
+			ops = [op_delete, op_insert];
+		}
+		return ops;
+	}
+
 	// If diffMatchPatch was provided, handle string mutation.
 	if (diffMatchPatch && (typeof input === "string") && (typeof output === "string")) {
 
