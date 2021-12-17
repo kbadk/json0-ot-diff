@@ -141,7 +141,7 @@ var diff = function(input, output, path=[], options) {
 	}
 
 	// If input or output is null, we need to delete it then add new data.
-	if ((input === null || output === null) && input !== output) {
+	if (input === null || output === null) {
 		var ops = [];
 		if (json1) {
 			ops.push(json1.removeOp(path, input));
