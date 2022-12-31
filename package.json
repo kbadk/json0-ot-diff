@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/kbadk/json0-ot-diff#readme",
   "dependencies": {
-    "deep-equal": "^2.1.0"
+    "deep-equal": "^1.0.1"
   },
   "devDependencies": {
     "chai": "^4.3.7",
