@@ -290,6 +290,52 @@ describe("Jsondiff", function() {
       ];
       runTests(tests);
     });
+    describe("Emoji", function() {
+      let tests = [
+        {
+          name: "Emoji replacement",
+          start: { one: "1234abcdef" },
+          end: { one: "1234😃bcdef" },
+          expectedCommand: [
+            { sd: 'a', p: [ 'one', 4 ] },
+            { si: '😃', p: [ 'one', 4 ] }
+          ]
+        },
+        {
+          name: "Emoji insertion",
+          start: { one: "1234abcdef" },
+          end: { one: "1234😃abcdef" },
+          expectedCommand: [
+            { si: '😃', p: [ 'one', 4 ] }
+          ]
+        },
+        {
+          name: "Emoji deletion",
+          start: { one: "1234😃abcdef" },
+          end: { one: "1234abcdef" },
+          expectedCommand: [
+            { sd: '😃', p: [ 'one', 4 ] }
+          ]
+        },
+        {
+          name: "Multiple emoji insertion",
+          start: { one: "1234abcdef" },
+          end: { one: "1234😃😃abcdef" },
+          expectedCommand: [
+            { si: '😃😃', p: [ 'one', 4 ] }
+          ]
+        },
+        {
+          name: "Multiple emoji deletion",
+          start: { one: "1234😃😃abcdef" },
+          end: { one: "1234abcdef" },
+          expectedCommand: [
+            { sd: '😃😃', p: [ 'one', 4 ] }
+          ]
+        },
+      ];
+      runTests(tests);
+    });
   });
   describe("JSON1", function () {
     describe("Reversible remove", function () {
